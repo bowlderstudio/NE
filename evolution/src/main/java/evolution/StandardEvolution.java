@@ -6,54 +6,36 @@ public class StandardEvolution extends Evolution
 {
 	private Population population;
 
-	//private Individual localBestSolution=null;
 	private Individual phaseBestSolution=null;
 	private Individual globalBestSolution=null;
 	
 	private List perfQ = new Vector();	// double
-	private static boolean SKIP = false;	// skip recombination;
+	private static boolean skipRecombination = false;	// skip recombination;
 	
-	public StandardEvolution(Environment e)
+	public StandardEvolution(Environment e, String propertyFile)
 	{
-		super(e);
+		super(e,propertyFile);
+		population=new Population(this.populationSize);
 		
-		population=new Population(Config.POP_SIZE);
-		
-		//localBestSolution=new Individual(e.getGeneType(),e.getFullChromoLength());
 		phaseBestSolution=new Individual(e.getGeneType(),e.getFullChromoLength());
 		globalBestSolution=new Individual(e.getGeneType(),e.getFullChromoLength());
 		
-		if (Config.MIN)
-		{
-			phaseBestSolution.setFitness(100000);
-			globalBestSolution.setFitness(100000);
-		}
-		else
-		{
-			phaseBestSolution.setFitness(0);
-			globalBestSolution.setFitness(0);
-		}
-		
+		//initialize best fitness values
+		phaseBestSolution.setFitness(0);
+		globalBestSolution.setFitness(0);
 	}
 	
-	public void evolve(int maxGeneration)
-	{
+	public void evolve() {
 		population.initializePopulation(environ.getGeneType(),environ.getFullChromoLength());
 		
-		for (int i=0;i<maxGeneration;i++)
+		for (int i=0;i<this.generationNumber;i++)
 		{
-			if (evaluationNumbers>=Config.MAX_EVALUATIONS)
-			{
-				break;
-			}
-			//System.out.println("generation"+(++generation)+" start."+"	global best fitnes="+globalBestSolution.getFitness());
-			testRecord=new Hashtable();
-			testRecord.put("generations", new Integer(generation));
-			
 			evalPopulation();
 			
-			if( SKIP ) {
-				SKIP = false;// skip recombination if we have just perturb the population
+			if( skipRecombination ) {
+				// skip recombination if we have just perturb the population
+				// a strategy to escape local optima
+				skipRecombination = false;
 			}
 			else 
 			{   
@@ -61,9 +43,7 @@ public class StandardEvolution extends Evolution
 				population.recombination();
 				population.mutation();
 			}
-			testRecord.put("evaluationNumbers", new Integer(evaluationNumbers));
-			testRecord.put("bestFitness", new Double(globalBestSolution.getFitness()));
-			testData.add(testRecord);
+			evolutionProcess.add(new EvolutionRecord(i,globalBestSolution.getFitness()));
 		}
 	}
 	
@@ -176,7 +156,7 @@ public class StandardEvolution extends Evolution
 // Start a new delta phase 
 	private void newDeltaPhase() {
 		System.out.println( "DELTA started");
-		SKIP = true;
+		skipRecombination = true;
 		population.deltify(globalBestSolution);
 	}
 }

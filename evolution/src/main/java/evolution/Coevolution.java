@@ -16,9 +16,9 @@ public class Coevolution extends Evolution{
 	private List perfQ = new Vector();	// double
 	private static boolean SKIP = false;	// skip recombination;
 	
-	public Coevolution(Environment e)
+	public Coevolution(Environment e, String propertyFile)
 	{
-		super(e);
+		super(e,propertyFile);
 		popNumber=e.getPopulationNumber();
 		population=new Population[popNumber];
 		currentBestSolution=new Individual[popNumber];
@@ -46,6 +46,10 @@ public class Coevolution extends Evolution{
 				globalBestSolution[i].setFitness(0);
 			}
 		}
+	}
+	
+	public void evolve() {
+		
 	}
 	
 	public void evolve(int maxGeneration)

@@ -13,21 +13,24 @@ public abstract class Evolution{
 	public static final int RANDOMEVAL = 2;
 	public static final int PARETOEVAL = 3;
 	
-	int generation;
-	int evaluationNumbers;
+	int generationNumber;
+	int populationSize;
 	Environment environ;
 		
-	public static ArrayList testData=new ArrayList();
-	public static Hashtable testRecord;
+	public static ArrayList<EvolutionRecord> evolutionProcess;
 	
-	public Evolution(Environment e)
+	public Evolution(Environment e, String propertyFile)
 	{
-		generation=0;
-		evaluationNumbers=0;
+		Properties p = Utils.loadProperties(propertyFile);
+		if (p == null)
+			System.exit(1);
+		generationNumber=Integer.parseInt(p.getProperty("max_generation", "100"));
+		populationSize=Integer.parseInt(p.getProperty("pop_size", "100"));
 		environ = e;
+		evolutionProcess=new ArrayList<EvolutionRecord>();
 	}
 	
-	public abstract void evolve(int maxGenerations);
+	public abstract void evolve();
 	
 	public void deltify(Individual[] individuals,Individual bestIndividual)
 	{

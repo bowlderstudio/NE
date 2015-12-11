@@ -1,5 +1,4 @@
 package evolution;
-/* Config.java */
 
 public class Config {
 	

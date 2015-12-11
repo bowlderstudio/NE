@@ -1,90 +1,61 @@
 package domain;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.Properties;
+
 import evolution.*;
 
 public class EvolutionaryApplication
 {
-	private static long seed = System.currentTimeMillis();
-
-	public EvolutionaryApplication()
-	{
+	int evolutionType;
+	String propertyFile;
+	
+	public EvolutionaryApplication(String propertyFile) {
+		this.propertyFile=propertyFile;
+		Properties p = Utils.loadProperties(propertyFile);
+		if (p == null)
+			System.exit(1);
+		
+		evolutionType=Integer.parseInt(p.getProperty("evolution_type","0"));
+		
 	}
 	
-	public static void main(String[] args)	{
-		//the start time of running
-		long startTime;
-		//the end time of running
-		long endTime;
-		startTime=System.currentTimeMillis();
-		EvolutionaryApplication gea=new EvolutionaryApplication();
-		
+	public void start() {
+		//TODO should be fetched from property file
+		Environment environment=new OptFunction();
 		Evolution evolution=null;
-		RandomSingleton.getInstance().setSeed(EvolutionaryApplication.seed);
-
-		OptFunction domain = new OptFunction();
-		
-		if (Config.EVOLUTION_TYPE==Evolution.STANDARDEVOLUTION)
-		{
-			evolution= new StandardEvolution(domain);
+		switch (evolutionType) {
+			case Evolution.STANDARDEVOLUTION:
+				evolution= new StandardEvolution(environment,propertyFile);
+				break;
+			case Evolution.STANDARDCOEVOLUTION:
+				evolution=new Coevolution(environment,propertyFile);
+				break;
 		}
-		else if (Config.EVOLUTION_TYPE==Evolution.STANDARDCOEVOLUTION)
-		{
-			evolution=new Coevolution(domain);
-		}
-		else if (Config.EVOLUTION_TYPE==Evolution.ARCHIVECOEVOLUTION)
-		{
-			evolution=new ArchiveCoevolution(domain);
-		}
-		
-		evolution.evolve(Config.MAX_GENERATION);
-		
-		gea.displayResults();
-		
-		endTime=System.currentTimeMillis();
-		
-		System.out.println("Total run time is " + (endTime-startTime)/1000 + " seconds. Population number is "+ domain.getPopulationNumber());
-		System.out.println();
-		System.out.println();
-		System.out.println();
+		evolution.evolve();
+	}
+	
+	public static void main(String[] args) {
+		EvolutionaryApplication evolutionaryApplication=new EvolutionaryApplication(args[0]);
+		evolutionaryApplication.start();
+		//Environment environment=evolutionaryApplication.getEnvironment("domain.OptFunction");
 	}
 
-	public void displayResults()
-	{
-		/*
-		System.out.println("\nTTT2 Game Running Parameters: \n");
-		System.out.println("Initialized population number: "+Config.POP_SIZE);
-		System.out.println("Max generations: "+Config.MAX_GENERATION);
-		System.out.println("Mutation type: "+Config.MUT_TYPE);
-		System.out.println("Mutation rate: "+Config.MUT_RATE);
-		
-		System.out.println("Crossover type: "+Config.MATE_TYPE);
-		System.out.println("Breed number: "+Config.NUM_BREED);
-		
-		System.out.println("Stagnation: "+Config.NUM_STAGNATION);
+	@SuppressWarnings("unchecked")
+	public Environment getEnvironment(String environmentClassName) {
+		Object obj=null;
+		try {
+			Class classTemp = Class.forName(environmentClassName);
 
-		System.out.println("Optimization function: "+OptFunction.testFunction);
-		
-		System.out.println("gen	bestfitness	phasefitness	globalfitness");*/
-		System.out.println("generations	globalfitness	evaluations");
-		ArrayList testData=Evolution.testData;
-		for (int i=0;i<testData.size();i++)
-		{
-			System.out.print(((Hashtable)testData.get(i)).get("generations").toString()+"	"
-					//+((Hashtable)testData.get(i)).get("bestfitness").toString()+"		"
-					//+((Hashtable)testData.get(i)).get("phasefitness").toString()+"		"
-					+((Hashtable)testData.get(i)).get("bestFitness").toString()+"	"
-					+((Hashtable)testData.get(i)).get("evaluationNumbers").toString()+"	"
-					);
-			
-			if (Config.EVOLUTION_TYPE==Evolution.ARCHIVECOEVOLUTION)
-			{
-				//System.out.print(((Hashtable)testData.get(i)).get("frontSize").toString());
-			}
-
-			System.out.println();
+	        obj =classTemp.newInstance();
+			return (Environment)obj;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
 		}
+		return (Environment)obj;
 	}
 }
 
