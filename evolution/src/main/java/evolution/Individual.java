@@ -145,10 +145,7 @@ public class Individual implements Cloneable
 	
 	public void resetFitness()
 	{
-		if (Config.MIN)
-			fitness=100000;
-		else 
-			fitness=0;
+		fitness=0;
 	}
 	
 	public void setMOFitnessSize(int fitnessSize)

@@ -2,6 +2,7 @@ package evolution;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Properties;
 
 //////////////////////////////////////////////////////////////////////
 //   Min Shi
@@ -14,26 +15,37 @@ public class Population{
 	public final static int CROSSOVER_ONEPOINT=0;
 	public final static int CROSSOVER_TWOPOINT=1;
 
-	public final static int MUTATION_ONEBIT=11;
-	public final static int MUTATION_TWOSWAP=12;
-	public final static int MUTATION_MULTIBIT=13;
-	public final static int MUTATION_INVERSE=14;
+	public final static int MUTATION_ONEBIT=0;
+	public final static int MUTATION_TWOSWAP=1;
+	public final static int MUTATION_MULTIBIT=2;
+	public final static int MUTATION_INVERSE=3;
 	
-	Individual[] pop; 
-	int nonDonimationNum;
-	private int numBreed=Config.NUM_BREED;  //number of neurons to be mated in SubPopulation
-	private double mutationRate=Config.MUT_RATE;
-	private int mutationType=Config.MUT_TYPE;
-	private int crossoverType=Config.MATE_TYPE;
-	private int elite=Config.POP_ELITE;
-	private double eliteRate=Config.POP_ELITE_RATE;
+	private Individual[] pop; 
+	private int populationSize;
+	private int nonDonimationNum;
+	private int numBreed;
+	private double mutationRate;
+	private int mutationType;
+	private int crossoverType;
+	private int geneType;
+	private int elite;
 	
-	public Population(int size)
+	public Population(String propertyFile)
 	{
-		pop=new Individual[size];
+		Properties p = Utils.loadProperties(propertyFile);
+		if (p == null)
+			System.exit(1);
+		populationSize=Integer.parseInt(p.getProperty("pop_size", "100"));
+		geneType=Integer.parseInt(p.getProperty("gene_type", "0"));
+		numBreed=(int)(Double.parseDouble(p.getProperty("breed_percent", "0.3"))*populationSize);
+		mutationRate=Double.parseDouble(p.getProperty("mutation_rate", "0.1"));
+		mutationType=Integer.parseInt(p.getProperty("mutation_type", "0"));
+		crossoverType=Integer.parseInt(p.getProperty("crossover_type", "0"));
+		elite=(int)(Double.parseDouble(p.getProperty("elite_rate", "0.2"))*populationSize);
+		pop=new Individual[populationSize];
 	}
 	
-	public void initializePopulation(int geneType, int len)
+	public void initializePopulation(int len)
 	{
 		for (int i=0;i<pop.length;i++)
 		{
@@ -86,8 +98,7 @@ public class Population{
 		}
 	}
 
-//----------------------------------------------------------------------
-// recombine neurons with members of their subpop using crossover.
+	//Recombine individuals
 	public void recombination() {
 		for (int i = 0; i < numBreed; ++i) {
 			int mate = findMate(i);
@@ -95,6 +106,7 @@ public class Population{
 	    }
 	}
 	
+	//TODO need to check
 	public void paretoRecombine()
 	{
 		int index=0;
@@ -106,10 +118,10 @@ public class Population{
 		
 		index=0;
 		//all the individuals in the front set are copied into the new generation
-		while (index<(Config.POP_SIZE-Config.NUM_NEWBLOOD)
+		while (index<(this.populationSize-this.numBreed)
 				&& pop[index++].getFrontLayer()==0);
 		secondFront=index;
-		index=Config.POP_SIZE-Config.NUM_NEWBLOOD;
+		index=this.populationSize-this.numBreed;
 		//while (pop[index++].getFrontLayer()==0);
 		//secondFront=index;
 		secondFront=secondFront<numBreed?numBreed:secondFront;
@@ -130,26 +142,18 @@ public class Population{
 		}
 	}
 	
-//----------------------------------------------------------------------
-// randomly find a mate in the same subpop.
+	// randomly find a mate in the same population.
 	private int findMate(int num) {
-		/*
-		if( num == 0 ) {
-    		return (Math.abs(RandomSingleton.getInstance().nextInt())%numBreed);
-		} 
-		else {
-    		return (Math.abs(RandomSingleton.getInstance().nextInt())%num);
-    	}*/
 		int mate;
 		do
 		{
 			mate=Math.abs(RandomSingleton.getInstance().nextInt())%numBreed;
-		}while (mate==num);
+		} while (mate==num);
 		return mate;
 	}
 	
-//----------------------------------------------------------------------
-// do crossover
+	//TODO consider gene type
+	// do crossover
 	private void crossover(	final Individual parent1, final Individual parent2, Individual child1, Individual child2) {
 		if (crossoverType==CROSSOVER_ONEPOINT)
 		{
@@ -214,8 +218,7 @@ public class Population{
 		}
 	}
 
-//----------------------------------------------------------------------
-// do mutation
+	// do mutation
 	public void mutation()
 	{
 		for (int i=0;i<pop.length;i++)  {
@@ -225,6 +228,7 @@ public class Population{
     	}
 	}
 	
+	//TODO consider gene type
 	private void doMutation(Individual individual)
 	{
 		if (mutationType==MUTATION_ONEBIT)
@@ -336,26 +340,19 @@ public class Population{
 	}
 //----------------------------------------------------------------------
 // sort the neurons in each subpop using quicksort.
+	@SuppressWarnings("rawtypes")
 	private static final Comparator minimize_fit = new MinimizeFit();
 	private static final Comparator maximize_fit = new MaximizeFit();
 	private static final Comparator paretominimize_fit = new ParetoMinimizeFit();
 	private static final Comparator paretomaximize_fit = new ParetoMaximizeFit();
 	
 	public void qsort() {
-		if( Config.MIN ) {
-			Arrays.sort( pop, minimize_fit );
-		} else {
-			Arrays.sort( pop, maximize_fit );
-    	}
+		Arrays.sort( pop, maximize_fit );
 	}
 	
 	public void paretoSort(int start,int end)
 	{
-		if( Config.MIN ) {
-			Arrays.sort( pop, start, end, paretominimize_fit );
-		} else {
-			Arrays.sort( pop, start, end, paretomaximize_fit );
-    	}
+		Arrays.sort( pop, start, end, paretomaximize_fit );
 	}
 	
 	//sort fitness according to the indexTH fitness
@@ -372,12 +369,7 @@ public class Population{
 				pop[i].SortedMOFitness[index]=temp;
 			}
 		}
-		if( Config.MIN ) {
-			Arrays.sort( pop, paretominimize_fit );
-		} 
-		else {
-			Arrays.sort( pop, paretomaximize_fit );
-    	}
+		Arrays.sort( pop, paretomaximize_fit );
 	}
 	
 	public Individual selectBestIndividual(int bestIndex)

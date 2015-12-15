@@ -15,6 +15,8 @@ public abstract class Evolution{
 	
 	int generationNumber;
 	int populationSize;
+	int geneType;
+	int stagnationNumber;
 	Environment environ;
 		
 	public static ArrayList<EvolutionRecord> evolutionProcess;
@@ -26,6 +28,8 @@ public abstract class Evolution{
 			System.exit(1);
 		generationNumber=Integer.parseInt(p.getProperty("max_generation", "100"));
 		populationSize=Integer.parseInt(p.getProperty("pop_size", "100"));
+		geneType=Integer.parseInt(p.getProperty("gene_type", "0"));
+		stagnationNumber=Integer.parseInt(p.getProperty("stagnation_number", "20"));
 		environ = e;
 		evolutionProcess=new ArrayList<EvolutionRecord>();
 	}

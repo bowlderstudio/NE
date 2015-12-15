@@ -1,7 +1,6 @@
 package domain;
 
 import java.util.Vector;
-
 import evolution.*;
 
 public class OptFunction implements Environment {
@@ -17,28 +16,18 @@ public class OptFunction implements Environment {
 	public static int BOOTH=9;
 	
 	private int geneType=Individual.BITS_GENE;
-	private int bitsLen=16;
-	private int dimension;
 	private int popNumber;
 	private int[] popLength;
 	private double lowBound;
 	private double upBound;
 	public static int testFunction=SCHWEFEL;
 	public static boolean rotation=false;
+	private int dimension; 
 	
 	public OptFunction()
 	{
 		initializeFunction();
-		if (Config.RANDOM_POP)
-			//popNumber=dimension+RandomSingleton.getInstance().nextInt(dimension+1)-dimension/2; //between n+-n/2
-			//popNumber=dimension+RandomSingleton.getInstance().nextInt(dimension/2)+1; //fine decomposition
-			popNumber=dimension-RandomSingleton.getInstance().nextInt(dimension/2)-1; //coarse decomposition
-		else
-		{
-			popNumber=dimension;
-			if (Config.RANDOM_CUT)
-				randomCutPopulation(popNumber);
-		}
+		popNumber=getDimension();
 	}
 
 	public void initializeFunction()
@@ -324,11 +313,6 @@ public class OptFunction implements Environment {
 		return rotatedX;
 	}
 	
-	public int getGeneType()
-	{
-		return geneType;
-	}
-	
 	public int getFullChromoLength()
 	{
 		return bitsLen*dimension;
@@ -386,5 +370,10 @@ public class OptFunction implements Environment {
 	public void nextTask()
 	{
 		
+	}
+
+	@Override
+	public int getDimension() {
+		return dimension;
 	}
 }

@@ -7,7 +7,8 @@ public interface Environment {
 	public double evalSolution(Individual individual);
 	public double evalSolution(Individual[] individual);
 
-	public int getGeneType();
+	int bitsLen=16;
+	public int getDimension();
 	public int getFullChromoLength();
 	public int getSubChromoLength(int i);
 	public Vector createFullSolution();
