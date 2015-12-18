@@ -21,7 +21,7 @@ public class EvolutionaryApplication
 	
 	public void start() {
 		//TODO should be fetched from property file
-		Environment environment=new OptFunction();
+		Environment environment=new OptFunction(propertyFile);
 		Evolution evolution=null;
 		switch (evolutionType) {
 			case Evolution.STANDARDEVOLUTION:

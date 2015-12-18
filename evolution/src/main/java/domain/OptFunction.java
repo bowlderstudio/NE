@@ -1,9 +1,10 @@
 package domain;
 
+import java.util.Properties;
 import java.util.Vector;
 import evolution.*;
 
-public class OptFunction implements Environment {
+public class OptFunction extends Environment {
 	
 	public static int ACKLEY=1;
 	public static int ROSENBROCK=2;
@@ -15,6 +16,7 @@ public class OptFunction implements Environment {
 	public static int SCHWEFEL2=8;
 	public static int BOOTH=9;
 	
+	private int dimension;
 	private int geneType=Individual.BITS_GENE;
 	private int popNumber;
 	private int[] popLength;
@@ -22,12 +24,11 @@ public class OptFunction implements Environment {
 	private double upBound;
 	public static int testFunction=SCHWEFEL;
 	public static boolean rotation=false;
-	private int dimension; 
 	
-	public OptFunction()
+	public OptFunction(String propertyFile)
 	{
+		super(propertyFile);
 		initializeFunction();
-		popNumber=getDimension();
 	}
 
 	public void initializeFunction()
@@ -313,19 +314,6 @@ public class OptFunction implements Environment {
 		return rotatedX;
 	}
 	
-	public int getFullChromoLength()
-	{
-		return bitsLen*dimension;
-	}
-	
-	public int getSubChromoLength(int i)
-	{
-		if (Config.RANDOM_CUT)
-			return popLength[i];
-		else
-			return (int)Math.ceil((double)bitsLen*dimension/popNumber);
-	}
-	
 	public Vector createFullSolution()
 	{
 		return new Vector(bitsLen*dimension);
@@ -343,10 +331,7 @@ public class OptFunction implements Environment {
 	
 	public int getPopulationNumber()
 	{
-		if (Config.EVOLUTION_TYPE==Evolution.STANDARDEVOLUTION)
-			return 1;
-		else
-			return this.popNumber;
+		return this.popNumber;
 	}
 	
 	public void randomCutPopulation(int n)

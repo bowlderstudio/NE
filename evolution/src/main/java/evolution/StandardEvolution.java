@@ -9,7 +9,6 @@ public class StandardEvolution extends Evolution
 	private Individual globalBestSolution=null;
 	
 	private List<Double> perfQ = new Vector<Double>();	// double
-	private static boolean skipRecombination = false;	// skip recombination;
 	
 	public StandardEvolution(Environment e, String propertyFile)
 	{

@@ -340,11 +340,10 @@ public class Population{
 	}
 //----------------------------------------------------------------------
 // sort the neurons in each subpop using quicksort.
-	@SuppressWarnings("rawtypes")
-	private static final Comparator minimize_fit = new MinimizeFit();
-	private static final Comparator maximize_fit = new MaximizeFit();
-	private static final Comparator paretominimize_fit = new ParetoMinimizeFit();
-	private static final Comparator paretomaximize_fit = new ParetoMaximizeFit();
+	private static final Comparator<Individual> minimize_fit = new MinimizeFit();
+	private static final Comparator<Individual> maximize_fit = new MaximizeFit();
+	private static final Comparator<Individual> paretominimize_fit = new ParetoMinimizeFit();
+	private static final Comparator<Individual> paretomaximize_fit = new ParetoMaximizeFit();
 	
 	public void qsort() {
 		Arrays.sort( pop, maximize_fit );

@@ -20,17 +20,14 @@ public class ArchiveCoevolution extends Evolution{
 	private List perfQ = new Vector();	// double
 	private static boolean SKIP = false;	// skip recombination;
 	
-	public ArchiveCoevolution(Environment e)
+	public ArchiveCoevolution(Environment e, String propertyFile)
 	{
-		super(e);
-		popNumber=e.getPopulationNumber();
-		archiveSize=Config.ARCHIVE_SIZE;
-		population=new Population[popNumber];
+		super(e,propertyFile);
+		population=new Population[populationNumber];
+		globalBestSolution=new Individual[populationNumber];
+		
 		archiveSolutions=new Individual[archiveSize][popNumber];
 		bestArchiveSolutions=new Individual[archiveSize][popNumber];
-		currentBestSolution=new Individual[popNumber];
-		phaseBestSolution=new Individual[popNumber];
-		globalBestSolution=new Individual[popNumber];
 		
 		for (int i=0;i<popNumber;i++)
 		{

@@ -15,9 +15,12 @@ public abstract class Evolution{
 	
 	int generationNumber;
 	int populationSize;
+	int populationNumber;
 	int geneType;
 	int stagnationNumber;
+	private int archieveSize;
 	Environment environ;
+	protected boolean skipRecombination = false;
 		
 	public static ArrayList<EvolutionRecord> evolutionProcess;
 	
@@ -28,10 +31,20 @@ public abstract class Evolution{
 			System.exit(1);
 		generationNumber=Integer.parseInt(p.getProperty("max_generation", "100"));
 		populationSize=Integer.parseInt(p.getProperty("pop_size", "100"));
+		populationNumber=Integer.parseInt(p.getProperty("pop_number", "1"));
 		geneType=Integer.parseInt(p.getProperty("gene_type", "0"));
 		stagnationNumber=Integer.parseInt(p.getProperty("stagnation_number", "20"));
+		archieveSize=Integer.parseInt(p.getProperty("archieve_size", "5"));
 		environ = e;
 		evolutionProcess=new ArrayList<EvolutionRecord>();
+	}
+	
+	public int getArchieveSize() {
+		if (populationNumber==1) {
+			return 1;
+		} else {
+			return archieveSize;
+		}
 	}
 	
 	public abstract void evolve();
@@ -46,12 +59,7 @@ public abstract class Evolution{
 
 	void populationSorting(Population Pop)
 	{
-		if (Config.SORTING_TYPE == Config.PARETOSORING)
-			dominationSorting(Pop);
-		else if (Config.SORTING_TYPE == Config.GREEDYSORTING)
-			greedySorting(Pop);
-		else if (Config.SORTING_TYPE == Config.DISTRIBUTIONSORTING)
-			distributionSorting(Pop);
+		distributionSorting(Pop);
 	}
 	
 	private void greedySorting(Population Pop)
@@ -66,7 +74,7 @@ public abstract class Evolution{
 	
 	private void distributionSorting(Population Pop)
 	{
-		Vector[] sortingPops= new Vector[Config.ARCHIVE_SIZE];
+		Vector[] sortingPops= new Vector[getArchieveSize()];
 
 		//sort the MOFitness of each individual;
 		for (int i=0;i<Pop.getPopulationSize();i++)
@@ -74,7 +82,7 @@ public abstract class Evolution{
 			Pop.getIndividual(i).copyMOFitness();
 		}
 		
-		for (int i=0;i<Config.ARCHIVE_SIZE;i++)
+		for (int i=0;i<getArchieveSize();i++)
 		{
 			sortingPops[i]=new Vector(Pop.getPopulationSize());
 			
@@ -90,11 +98,11 @@ public abstract class Evolution{
 		Individual ind;
 		for (int i=0;i<Pop.getPopulationSize();i++)
 		{
-			ind=(Individual)(Individual)sortingPops[i % Config.ARCHIVE_SIZE].elementAt(0);
+			ind=(Individual)(Individual)sortingPops[i % getArchieveSize()].elementAt(0);
 			Pop.setIndividual(i, (Individual)ind.clone());
 			
 			//remove all the ind away from the sortingPops
-			for (int j=0;j<Config.ARCHIVE_SIZE;j++)
+			for (int j=0;j<getArchieveSize();j++)
 			{
 				sortingPops[j].remove(ind);
 			}
@@ -208,36 +216,19 @@ public abstract class Evolution{
 		fitness1=indi1.getMOFitness();
 		fitness2=indi2.getMOFitness();
 		
-		if (Config.MIN)
+		for (int i=0;i<indi1.getSortedMOFitness().length;i++)
 		{
-			for (int i=0;i<indi1.getMOFitness().length;i++)
+			if (fitness1[i]<fitness2[i])
 			{
-				if (fitness1[i]>fitness2[i])
-				{
-					dominate=false;
-					break;
-				}
-				else if (fitness1[i]<fitness2[i])
-				{
-					dominater=true;
-				}
+				dominate=false;
+				break;
+			}
+			else if (fitness1[i]>fitness2[i])
+			{
+				dominater=true;
 			}
 		}
-		else
-		{
-			for (int i=0;i<indi1.getSortedMOFitness().length;i++)
-			{
-				if (fitness1[i]<fitness2[i])
-				{
-					dominate=false;
-					break;
-				}
-				else if (fitness1[i]>fitness2[i])
-				{
-					dominater=true;
-				}
-			}
-		}
+		
 		return dominate && dominater;
 	}
 }

@@ -7,110 +7,89 @@ import java.util.Vector;
 public class Coevolution extends Evolution{
 
 	private Population[] population;
-	private int popNumber;
-
+	private Individual[][] archiveSolutions;
+	private Individual[][] bestArchiveSolutions;
 	private Individual[] currentBestSolution=null;
 	private Individual[] phaseBestSolution=null;
 	private Individual[] globalBestSolution=null;
 	
 	private List perfQ = new Vector();	// double
-	private static boolean SKIP = false;	// skip recombination;
 	
 	public Coevolution(Environment e, String propertyFile)
 	{
 		super(e,propertyFile);
-		popNumber=e.getPopulationNumber();
-		population=new Population[popNumber];
-		currentBestSolution=new Individual[popNumber];
-		phaseBestSolution=new Individual[popNumber];
-		globalBestSolution=new Individual[popNumber];
+		population=new Population[populationNumber];
+		globalBestSolution=new Individual[populationNumber];
+		archiveSolutions=new Individual[getArchieveSize()][populationNumber];
+		bestArchiveSolutions=new Individual[getArchieveSize()][populationNumber];
 		
-		for (int i=0;i<popNumber;i++)
+		for (int i=0;i<populationNumber;i++)
 		{
-			population[i]=new Population(Config.POP_SIZE);
+			population[i]=new Population(propertyFile);
 		
-			currentBestSolution[i]=new Individual(e.getGeneType(),e.getSubChromoLength(i));
-			phaseBestSolution[i]=new Individual(e.getGeneType(),e.getSubChromoLength(i));
-			globalBestSolution[i]=new Individual(e.getGeneType(),e.getSubChromoLength(i));
+			globalBestSolution[i]=new Individual(geneType, e.getSubChromoLength(i));
 			
-			if (Config.MIN)
+			globalBestSolution[i].setFitness(0);
+		}
+		
+		for (int i=0;i<getArchieveSize();i++)
+		{
+			for (int j=0;j<populationNumber;j++)
 			{
-				currentBestSolution[i].setFitness(100000);
-				phaseBestSolution[i].setFitness(100000);
-				globalBestSolution[i].setFitness(100000);
-			}
-			else
-			{
-				currentBestSolution[i].setFitness(0);
-				phaseBestSolution[i].setFitness(0);
-				globalBestSolution[i].setFitness(0);
+				archiveSolutions[i][j]=new Individual(geneType,e.getSubChromoLength(i));
+				bestArchiveSolutions[i][j]=new Individual(geneType,e.getSubChromoLength(i));
 			}
 		}
 	}
 	
-	public void evolve() {
-		
-	}
-	
-	public void evolve(int maxGeneration)
+	public void evolve()
 	{
-		for (int i=0;i<popNumber;i++)
+		int random;
+		double fitness;
+		
+		for (int i=0;i<populationNumber;i++)
 		{
-			population[i].initializePopulation(environ.getGeneType(),environ.getSubChromoLength(i));
+			population[i].initializePopulation(environ.getSubChromoLength(i));
+		}
+		
+		//initialize archive population with random individuals
+		for (int i=0;i<getArchieveSize();i++)
+		{
+			for (int j=0;j<populationNumber;j++)
+			{
+				random = Math.abs(RandomSingleton.getInstance().nextInt())% population[j].getPopulationSize();
+				archiveSolutions[i][j]=(Individual)population[j].getIndividual(random).clone();
+			}
+			fitness=environ.evalSolution(archiveSolutions[i]);
+			for (int j=0;j<populationNumber;j++)
+			{
+				archiveSolutions[i][j].setFitness(fitness);
+				bestArchiveSolutions[i][j]=(Individual)archiveSolutions[i][j].clone();
+			}
 		}
 		
 		//initialize multifitness of individuals in the populations
-		for (int i=0;i<popNumber;i++)
+		for (int i=0;i<populationNumber;i++)
 			for (int j=0;j<population[i].getPopulationSize();j++)
 			{
-				population[i].getIndividual(j).setMOFitnessSize(Config.ARCHIVE_SIZE);
+				population[i].getIndividual(j).setMOFitnessSize(getArchieveSize());
 				
-				if (Config.MIN)
-				{
-					for (int k=0;k<Config.ARCHIVE_SIZE;k++)
-						population[i].getIndividual(j).setMOFitness(k,100000);
-				}
-				else
-				{
-					for (int k=0;k<Config.ARCHIVE_SIZE;k++)
-						population[i].getIndividual(j).setMOFitness(k,0);
-				}
+				for (int k=0;k<getArchieveSize();k++)
+					population[i].getIndividual(j).setMOFitness(k,0);
 			}
 		
-		for (int i=0;i<maxGeneration;i++)
+		for (int i=0;i<generationNumber;i++)
 		{
-			if (evaluationNumbers>=Config.MAX_EVALUATIONS)
-			{
-				break;
-			}
-//			System.out.println("generation"+(generation++)+" start."+"	global best fitnes="+globalBestSolution[0].getFitness());
-			testRecord=new Hashtable();
-			testRecord.put("generations", new Integer(i+1));
-			
-			evalPopulation(i % popNumber);
+			int popIndex=(populationNumber==1)?0:(i % populationNumber);
+			evalPopulation(popIndex);
 			
 			
-			if( SKIP ) {
-				SKIP = false;// skip recombination if we have just perturb the population
+			if( skipRecombination ) {
+				skipRecombination = false;// skip recombination if we have just perturb the population
 			}
-			else if (Config.GROUP_REPRODUCTION && (i % popNumber==popNumber-1))
-			{
-				for (int j=0;j<popNumber;j++)
-				{
-					populationSorting(population[j]);
-					population[j].recombination();
-					population[j].mutation();
-				}
-			}
-			else if (!Config.GROUP_REPRODUCTION)
-			{
-				populationSorting(population[i % popNumber]); 
-				population[i % popNumber].recombination();
-				population[i % popNumber].mutation();
-			}
-			testRecord.put("evaluationNumbers", new Integer(evaluationNumbers));
-			testRecord.put("bestFitness", new Double(currentBestSolution[0].getFitness()));
-			testData.add(testRecord);
+			populationSorting(population[popIndex]); 
+			population[popIndex].recombination();
+			population[popIndex].mutation();
 		}
 	}
 	
@@ -127,12 +106,8 @@ public class Coevolution extends Evolution{
 		
 		for (int j=0;j<population[i].getPopulationSize();j++)
 		{
-			for (int k=0;k<Config.ARCHIVE_SIZE;k++)
+			for (int k=0;k<getArchieveSize();k++)
 			{
-				if (evaluationNumbers++>=Config.MAX_EVALUATIONS)
-				{
-					return;
-				}
 				//best combination
 				if (Config.SELECTION_TYPE==Config.BESTSELECTION)
 				{
@@ -238,8 +213,8 @@ public class Coevolution extends Evolution{
 	
 	public Individual[] bestCombination(int popIndex, int arcIndex, Individual individual)
 	{
-		Individual[] solution=new Individual[popNumber];
-		for (int i=0;i<popNumber;i++)
+		Individual[] solution=new Individual[populationNumber];
+		for (int i=0;i<populationNumber;i++)
 		{
 			if (i==popIndex)
 				solution[i]=individual;
