@@ -15,7 +15,7 @@ public class Individual implements Cloneable
 	double[] SortedMOFitness;
 	int frontLayer;
 	private int tests;
-	private Vector chromosome;
+	private Vector<String> chromosome;
 	private int geneType;
 
 	public Individual(int type, int len)
@@ -26,7 +26,7 @@ public class Individual implements Cloneable
 	}
 	
 	//construct a given population
-	public Individual(Vector pop)
+	public Individual(Vector<String> pop)
 	{
 		chromosome=pop;
 	}
@@ -50,22 +50,22 @@ public class Individual implements Cloneable
 	
 	public void initChromosome()
 	{
-		chromosome=new Vector(length);
-		if (geneType==this.BITS_GENE)
+		chromosome=new Vector<String>(length);
+		if (geneType==BITS_GENE)
 		{
 			for (int i=0;i<length;i++)
 			{
 				chromosome.addElement(createBits());
 			}
 		}
-		else if (geneType==this.INTEGER_GENE)
+		else if (geneType==INTEGER_GENE)
 		{
 			for (int i=0;i<length;i++)
 			{
 				chromosome.addElement(createIntegers());
 			}
 		}
-		else if (geneType==this.REALNUMBER_GENE)
+		else if (geneType==REALNUMBER_GENE)
 		{
 			for (int i=0;i<length;i++)
 			{
@@ -75,19 +75,19 @@ public class Individual implements Cloneable
 	}
 	
 	//return the chromosome of population
-	public Vector getChromosome()
+	public Vector<String> getChromosome()
 	{
 		return chromosome;
 	}
 	
 	//return the chromosome of population
-	public void setChromosome(Vector ch)
+	public void setChromosome(Vector<String> ch)
 	{
 		chromosome=ch;
 	}
 	
 	//set the ith gene of a chromosome
-	public void setGene(int i,Object value)
+	public void setGene(int i,String value)
 	{
 		chromosome.setElementAt(value,i);
 	}
@@ -99,13 +99,13 @@ public class Individual implements Cloneable
 	}
 	
 	//add the ith gene of a chromosome
-	public void addGene(int index,Object value)
+	public void addGene(int index,String value)
 	{
 		chromosome.add(index,value);
 	}
 	
 	//get the ith gene of a chromosome
-	public Object getGene(int i)
+	public String getGene(int i)
 	{
 		return chromosome.elementAt(i);
 	}
@@ -120,7 +120,7 @@ public class Individual implements Cloneable
 	}
 	
 	//Tests if the specified object is a component in this vector
-	public boolean containsGene(Object obj)
+	public boolean containsGene(String obj)
 	{
 		return chromosome.contains(obj);
 	}
@@ -227,7 +227,7 @@ public class Individual implements Cloneable
 		try 
 		{
 			Individual p=(Individual)super.clone();
-			p.chromosome=(Vector)chromosome.clone();
+			p.chromosome=(Vector<String>)chromosome.clone();
 			if (MOFitness!=null)
 				p.MOFitness=(double[])MOFitness.clone();
 			if (SortedMOFitness!=null)
@@ -240,7 +240,7 @@ public class Individual implements Cloneable
 		}
 	}
 
-	public void copyChromosome(Vector chrom)
+	public void copyChromosome(Vector<String> chrom)
 	{
 		for (int i=0;i<chromosome.size();i++)
 		{

@@ -1,6 +1,5 @@
 package domain;
 
-import java.util.Properties;
 import java.util.Vector;
 import evolution.*;
 

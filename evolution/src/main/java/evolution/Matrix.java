@@ -1,7 +1,5 @@
 package evolution;
 
-import java.util.*;
-
 public class Matrix
 {
 	public Matrix()

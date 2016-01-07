@@ -14,11 +14,13 @@ public class Population{
 	
 	public final static int CROSSOVER_ONEPOINT=0;
 	public final static int CROSSOVER_TWOPOINT=1;
+	public final static int CROSSOVER_LINEAR=2;
 
 	public final static int MUTATION_ONEBIT=0;
 	public final static int MUTATION_TWOSWAP=1;
 	public final static int MUTATION_MULTIBIT=2;
 	public final static int MUTATION_INVERSE=3;
+	public final static int MUTATION_ONELINEAR=4;
 	
 	private Individual[] pop; 
 	private int populationSize;
@@ -162,7 +164,10 @@ public class Population{
 		else if (crossoverType==CROSSOVER_TWOPOINT)
 		{
 			crossoverTwoPoint(parent1, parent2, child1, child2);
-		}
+		} else if (crossoverType==CROSSOVER_LINEAR)
+		{
+			crossoverLinear(parent1, parent2, child1, child2);
+		} 
 	}
 
 	//one point crossover
@@ -217,7 +222,27 @@ public class Population{
 			child2.setGene(i,parent1.getGene(i));
 		}
 	}
-
+	
+	//linear crossover
+	//TODO consider integer gene
+	private void crossoverLinear(Individual parent1, Individual parent2, Individual child1, Individual child2)
+	{
+		double operator,gene1,gene2;
+		
+		for (int i=0;i<parent1.getLength();i++) {
+			operator=RandomSingleton.getInstance().nextDouble();
+			gene1=Double.parseDouble(parent1.getGene(i));
+			gene2=Double.parseDouble(parent2.getGene(i));
+			if (geneType==Individual.REALNUMBER_GENE) {
+				child1.setGene(i, gene1*operator+gene2*(1-operator)+"");
+				child1.setGene(i, gene2*operator+gene1*(1-operator)+"");
+			} else if (geneType==Individual.INTEGER_GENE) {
+				child1.setGene(i, (int)(gene1*operator+gene2*(1-operator))+"");
+				child1.setGene(i, (int)(gene2*operator+gene1*(1-operator))+"");
+			} 
+		}
+	}
+	
 	// do mutation
 	public void mutation()
 	{
@@ -231,21 +256,20 @@ public class Population{
 	//TODO consider gene type
 	private void doMutation(Individual individual)
 	{
-		if (mutationType==MUTATION_ONEBIT)
-		{
+		if (mutationType==MUTATION_ONEBIT) {
 			mutationOneBit(individual);
 		}
-		else if (mutationType==MUTATION_TWOSWAP)
-		{
+		else if (mutationType==MUTATION_TWOSWAP) {
 			mutationTwoSwap(individual);
 		}
-		else if (mutationType==MUTATION_MULTIBIT)
-		{
+		else if (mutationType==MUTATION_MULTIBIT) {
 			mutationMultiBit(individual);
 		}
-		else if (mutationType==MUTATION_INVERSE)
-		{
+		else if (mutationType==MUTATION_INVERSE) {
 			mutationInverse(individual);
+		}
+		else if (mutationType==MUTATION_ONELINEAR) {
+			mutationOneLinear(individual);
 		}
 	}
 
@@ -266,7 +290,7 @@ public class Population{
 	private void mutationTwoSwap(Individual individual)
 	{
 		int point1,point2;
-		Object temp;
+		String temp;
 		int len=individual.getLength();
 		
 		//randomly select one points in the chromosome
@@ -313,7 +337,7 @@ public class Population{
 	private void mutationInverse(Individual individual)
 	{
 		int point1,point2,tempPoint;
-		Object temp;
+		String temp;
 		int len=individual.getLength();
 		
 		//randomly select one points in the chromosome
@@ -338,11 +362,25 @@ public class Population{
 			individual.setGene(point2-i,temp);
 		}
 	}
-//----------------------------------------------------------------------
-// sort the neurons in each subpop using quicksort.
-	private static final Comparator<Individual> minimize_fit = new MinimizeFit();
+	
+	private void mutationOneLinear(Individual individual)
+	{
+		int point1;
+		int len=individual.getLength();
+		
+		//randomly select one points in the chromosome
+		point1=RandomSingleton.getInstance().nextInt(len);
+
+		double oldGene=Double.parseDouble(individual.getGene(point1));
+		if (RandomSingleton.getInstance().nextInt(2)==0) {
+			oldGene=oldGene*(1+RandomSingleton.getInstance().nextDouble());
+		} else {
+			oldGene=oldGene*(1-RandomSingleton.getInstance().nextDouble());
+		}
+		individual.setGene(point1,oldGene+"");
+	}
+	
 	private static final Comparator<Individual> maximize_fit = new MaximizeFit();
-	private static final Comparator<Individual> paretominimize_fit = new ParetoMinimizeFit();
 	private static final Comparator<Individual> paretomaximize_fit = new ParetoMaximizeFit();
 	
 	public void qsort() {

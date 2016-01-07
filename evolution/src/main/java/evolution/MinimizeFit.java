@@ -2,19 +2,15 @@ package evolution;
 
 import java.util.Comparator;
 
-public class MinimizeFit implements Comparator {
-    public int compare(Object x, Object y) {
-    	if( x instanceof Individual && y instanceof Individual ) {
-    		if( ((Individual)x).getFitness() < ((Individual)y).getFitness() ) {
-    			return -1;
-    		} else if ( ((Individual)x).getFitness() > ((Individual)y).getFitness() ) {
-    			return 1;
-    		} else {
-        		return 0;
-        	}
-        } else {
-        	throw new ClassCastException();
-        }
+public class MinimizeFit implements Comparator<Individual> {
+    public int compare(Individual x, Individual y) {
+    	if( ((Individual)x).getFitness() < ((Individual)y).getFitness() ) {
+			return -1;
+		} else if ( ((Individual)x).getFitness() > ((Individual)y).getFitness() ) {
+			return 1;
+		} else {
+    		return 0;
+    	}
     }
     
     public boolean equals( Object obj ) {
